@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HistoriColloc — Fiches de Révision</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">✒</span>
+      <div>
+        <h1>HistoriColloc</h1>
+        <p class="tagline">Nos fiches d'histoire, en commun</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.8rem;align-items:center">
+      <button class="btn-profile" id="btnProfile">
+        <span class="profile-avatar" id="headerAvatar">?</span>
+        <span id="headerName">Se connecter</span>
+      </button>
+      <button class="btn-primary" id="btnNewCard">+ Nouvelle fiche</button>
+    </div>
+  </div>
+</header>
+
+<div class="filters-bar">
+  <input type="text" id="searchInput" placeholder="🔍 Rechercher une fiche..." class="search-input"/>
+  <div class="tags-filter" id="tagsFilter">
+    <span class="tag-pill active" data-tag="all">Toutes</span>
+  </div>
+</div>
+
+<main id="cardsGrid" class="cards-grid">
+  <div class="empty-state" id="emptyState">
+    <span>📜</span>
+    <p>Aucune fiche pour l'instant.<br>Soyez le premier à en créer une !</p>
+  </div>
+</main>
+
+<!-- MODAL: Créer / Modifier fiche -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nouvelle fiche</h2>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label>Titre *</label>
+          <input type="text" id="cardTitle" placeholder="Ex: La Révolution Française"/>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Auteur</label>
+          <input type="text" id="cardAuthor" readonly style="opacity:0.6;cursor:default"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tags (séparés par des virgules)</label>
+        <input type="text" id="cardTags" placeholder="Ex: Rome, Antiquité, Guerres puniques"/>
+      </div>
+      <div class="form-group">
+        <label>Contenu de la fiche</label>
+        <div class="editor-toolbar">
+          <button type="button" data-cmd="bold"><b>G</b></button>
+          <button type="button" data-cmd="italic"><i>I</i></button>
+          <button type="button" data-cmd="underline"><u>S</u></button>
+          <button type="button" data-cmd="insertUnorderedList">• Liste</button>
+          <button type="button" data-cmd="insertOrderedList">1. Liste</button>
+          <button type="button" id="btnInsertTitle">Titre</button>
+        </div>
+        <div class="editor" id="cardContent" contenteditable="true" placeholder="Rédige ta fiche ici..."></div>
+      </div>
+      <div class="form-group">
+        <label>Images</label>
+        <div class="image-upload-zone" id="imageDropZone">
+          <span>📷 Glisse tes images ici ou</span>
+          <label class="btn-secondary" style="cursor:pointer">
+            parcourir
+            <input type="file" id="imageInput" accept="image/*" multiple style="display:none"/>
+          </label>
+        </div>
+        <div class="image-previews" id="imagePreviews"></div>
+      </div>
+      <div class="form-group">
+        <label>Frise chronologique</label>
+        <div class="timeline-builder">
+          <div class="timeline-events" id="timelineEvents"></div>
+          <div class="timeline-add-row">
+            <input type="date" id="newEventYear"/>
+            <input type="text" id="newEventLabel" placeholder="Événement"/>
+            <button type="button" id="btnAddEvent" class="btn-secondary">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="btnCancel">Annuler</button>
+      <button class="btn-primary" id="btnSave">Enregistrer la fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Lire fiche -->
+<div class="modal-overlay" id="readModalOverlay">
+  <div class="modal modal-read">
+    <div class="modal-header">
+      <div>
+        <h2 id="readTitle"></h2>
+        <p id="readMeta" class="read-meta"></p>
+      </div>
+      <button class="modal-close" id="readModalClose">✕</button>
+    </div>
+    <div class="modal-body" id="readModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" id="btnDeleteCard">🗑 Supprimer</button>
+      <button class="btn-secondary" id="btnEditCard">✏ Modifier</button>
+      <button class="btn-primary" id="readClose2">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROFIL -->
+<div class="modal-overlay" id="profileModalOverlay">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h2 id="profileModalTitle">Connexion</h2>
+      <button class="modal-close" id="profileModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div id="profileFormScreen">
+        <div class="profile-tabs">
+          <button class="profile-tab active" id="tabLogin">Se connecter</button>
+          <button class="profile-tab" id="tabRegister">Créer un compte</button>
+        </div>
+
+        <div id="loginForm" style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem">
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="loginEmail" placeholder="ton@email.com"/>
+          </div>
+          <div class="form-group">
+            <label>Mot de passe *</label>
+            <input type="password" id="loginPassword" placeholder="Ton mot de passe"/>
+          </div>
+          <p class="profile-hint" id="loginHint"></p>
+        </div>
+
+        <div id="registerForm" style="display:none;flex-direction:column;gap:1rem;margin-top:1rem">
+          <div class="form-group">
+            <label>Prénom / Pseudo *</label>
+            <input type="text" id="registerName" placeholder="Ex: Marie"/>
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="registerEmail" placeholder="ton@email.com"/>
+          </div>
+          <div class="form-group">
+            <label>Mot de passe *</label>
+            <input type="password" id="registerPassword" placeholder="Au moins 6 caractères"/>
+          </div>
+          <div class="form-group">
+            <label>Avatar</label>
+            <div class="avatar-picker-wrap">
+              <div class="avatar-upload-zone">
+                <div class="avatar-preview" id="avatarPreview">🦁</div>
+                <div class="avatar-upload-actions">
+                  <label class="btn-secondary" style="cursor:pointer;font-size:0.8rem">
+                    📷 Importer une photo
+                    <input type="file" id="avatarImageInput" accept="image/*" style="display:none"/>
+                  </label>
+                  <span class="avatar-or">ou choisis un emoji</span>
+                </div>
+              </div>
+              <div class="avatar-emoji-picker" id="avatarPicker"></div>
+            </div>
+          </div>
+          <p class="profile-hint" id="registerHint"></p>
+        </div>
+      </div>
+
+      <div id="profileConnectedScreen" style="display:none;text-align:center;padding:1rem 0">
+        <div class="profile-big-avatar" id="profileBigAvatar"></div>
+        <p class="profile-connected-name" id="profileConnectedName"></p>
+        <p class="profile-hint">Connecté</p>
+      </div>
+
+    </div>
+    <div class="modal-footer" id="profileModalFooter">
+      <button class="btn-ghost" id="btnProfileCancel">Annuler</button>
+      <button class="btn-primary" id="btnProfileAction">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOUTON NOTES -->
+<button class="notes-toggle" id="notesToggle">
+  💬
+  <span class="notes-badge" id="notesBadge" style="display:none"></span>
+</button>
+
+<!-- PANNEAU NOTES -->
+<div class="notes-panel" id="notesPanel">
+  <div class="notes-resize-bar" id="notesResizeBar"></div>
+  <div class="notes-header">
+    <h3>📌 Notes & Conseils</h3>
+    <div class="notes-size-btns">
+      <button class="notes-size-btn" id="notesShrink" title="Réduire">−</button>
+      <button class="notes-size-btn" id="notesExpand" title="Agrandir">+</button>
+    </div>
+    <button class="modal-close" id="notesClose">✕</button>
+  </div>
+  <div class="notes-list" id="notesList"></div>
+  <div class="notes-form">
+    <textarea id="noteText" placeholder="Écris un conseil, une remarque... (Ctrl+Entrée pour envoyer)"></textarea>
+    <button class="btn-primary" id="btnSaveNote">Publier</button>
+  </div>
+</div>
+<div class="notes-overlay" id="notesOverlay"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
