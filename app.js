@@ -479,9 +479,9 @@ function openEditModal(id) {
   modalOverlay.classList.add('open');
 }
 
-function closeModal() {
-  // Sauvegarde brouillon seulement si c'est une nouvelle fiche (pas une édition)
-  if (!editingId) saveDraft();
+
+function closeModal(fromSave = false) {
+  if (!editingId && !fromSave) saveDraft();
   modalOverlay.classList.remove('open');
 }
 
@@ -510,7 +510,7 @@ async function saveCard() {
     await push(ref(db, 'cards'), data);
   }
   clearDraft();
-  closeModal();
+  closeModal(true);
 }
 
 // ===========================
@@ -725,7 +725,8 @@ btnNewCard.addEventListener('click', openCreateModal);
 modalClose.addEventListener('click', closeModal);
 btnCancel.addEventListener('click', closeModal);
 btnSave.addEventListener('click', saveCard);
-modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(false); closeReadModal(); } });
 
 readModalClose.addEventListener('click', closeReadModal);
 readClose2.addEventListener('click', closeReadModal);
