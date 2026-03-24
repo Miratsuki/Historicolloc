@@ -399,23 +399,64 @@ function setActiveTag(tag) {
   renderAll();
 }
 
+
+// ===========================
+//   BROUILLON
+// ===========================
+const DRAFT_KEY = 'hc_draft';
+
+function saveDraft() {
+  const draft = {
+    title: cardTitle.value,
+    tags: cardTags.value,
+    content: cardContent.innerHTML,
+    images: currentImages,
+    timeline: currentTimeline,
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function loadDraft() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || null; }
+  catch { return null; }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+
 // ===========================
 //   CREATE / EDIT MODAL
 // ===========================
 function openCreateModal() {
   if (!currentUser) { alert('Connecte-toi pour créer une fiche.'); openProfileModal(); return; }
   editingId = null;
-  currentImages = [];
-  currentTimeline = [];
   modalTitle.textContent = 'Nouvelle fiche';
-  cardTitle.value = '';
   cardAuthor.value = currentUser.name;
-  cardTags.value = '';
-  cardContent.innerHTML = '';
-  imagePreviews.innerHTML = '';
-  timelineEvents.innerHTML = '';
   newEventYear.value = '';
   newEventLabel.value = '';
+
+  const draft = loadDraft();
+  if (draft) {
+    cardTitle.value = draft.title || '';
+    cardTags.value = draft.tags || '';
+    cardContent.innerHTML = draft.content || '';
+    currentImages = draft.images || [];
+    currentTimeline = draft.timeline || [];
+    // Petite notification
+    modalTitle.textContent = 'Nouvelle fiche — brouillon restauré ✎';
+  } else {
+    cardTitle.value = '';
+    cardTags.value = '';
+    cardContent.innerHTML = '';
+    currentImages = [];
+    currentTimeline = [];
+  }
+
+  renderImagePreviews();
+  renderTimelineBuilder();
+  imagePreviews.innerHTML = currentImages.length ? imagePreviews.innerHTML : '';
   modalOverlay.classList.add('open');
   cardTitle.focus();
 }
@@ -438,7 +479,11 @@ function openEditModal(id) {
   modalOverlay.classList.add('open');
 }
 
-function closeModal() { modalOverlay.classList.remove('open'); }
+function closeModal() {
+  // Sauvegarde brouillon seulement si c'est une nouvelle fiche (pas une édition)
+  if (!editingId) saveDraft();
+  modalOverlay.classList.remove('open');
+}
 
 async function saveCard() {
   if (!currentUser) return;
@@ -464,6 +509,7 @@ async function saveCard() {
   } else {
     await push(ref(db, 'cards'), data);
   }
+  clearDraft();
   closeModal();
 }
 
