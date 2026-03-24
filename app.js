@@ -184,14 +184,71 @@ function openConnectedModal() {
   profileConnectedName.textContent = currentUser.name;
   profileModalFooter.innerHTML = `
     <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
+    <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
     <button class="btn-primary" id="btnCloseProfile">Fermer</button>
+`;
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await signOut(auth);
+  closeProfileModal();
+});
+document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
+document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
+}
+
+function showEditProfileScreen() {
+  profileConnectedScreen.style.display = 'none';
+  profileFormScreen.style.display = 'block';
+  profileModalTitle.textContent = 'Modifier le profil';
+
+  // Pré-remplir avec les valeurs actuelles
+  registerName.value = currentUser.name;
+  registerEmail.value = '';
+  registerPassword.value = '';
+  selectedAvatar = currentUser.avatar;
+  selectedAvatarIsImage = currentUser.avatarIsImage;
+  if (selectedAvatarIsImage) {
+    avatarPreview.innerHTML = `<img src="${selectedAvatar}" alt="avatar"/>`;
+  } else {
+    avatarPreview.textContent = selectedAvatar;
+  }
+
+  // Cacher l'onglet "Se connecter", montrer seulement le formulaire d'édition
+  document.querySelector('.profile-tabs').style.display = 'none';
+  loginForm.style.display = 'none';
+  registerForm.style.display = 'flex';
+  buildAvatarPicker();
+
+  profileModalFooter.innerHTML = `
+    <button class="btn-ghost" id="btnCancelEdit">Annuler</button>
+    <button class="btn-primary" id="btnSaveProfile">Enregistrer</button>
   `;
-  document.getElementById('btnLogout').addEventListener('click', async () => {
-    await signOut(auth);
-    closeProfileModal();
+  document.getElementById('btnCancelEdit').addEventListener('click', () => {
+    document.querySelector('.profile-tabs').style.display = 'flex';
+    openConnectedModal();
   });
-  document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
-  profileModalOverlay.classList.add('open');
+  document.getElementById('btnSaveProfile').addEventListener('click', saveProfileChanges);
+}
+
+async function saveProfileChanges() {
+  const name = registerName.value.trim();
+  if (!name) { showHint(registerHint, 'Le prénom est obligatoire.'); return; }
+  try {
+    // Met à jour en DB
+    await update(ref(db, `users/${currentUser.uid}`), {
+      name,
+      avatar: selectedAvatar,
+      avatarIsImage: selectedAvatarIsImage,
+    });
+    // Met à jour localement
+    currentUser.name = name;
+    currentUser.avatar = selectedAvatar;
+    currentUser.avatarIsImage = selectedAvatarIsImage;
+    updateHeaderProfile();
+    document.querySelector('.profile-tabs').style.display = 'flex';
+    openConnectedModal();
+  } catch (e) {
+    showHint(registerHint, 'Erreur lors de la sauvegarde.');
+  }
 }
 
 function closeProfileModal() {
@@ -481,7 +538,11 @@ function openEditModal(id) {
 
 
 function closeModal(fromSave = false) {
-  if (!editingId && !fromSave) saveDraft();
+  if (!editingId && !fromSave && cardTitle.value.trim()) {
+    saveDraft();
+  } else if (!editingId && !fromSave && !cardTitle.value.trim()) {
+    clearDraft(); // efface le brouillon si tout est vide
+  }
   modalOverlay.classList.remove('open');
 }
 
@@ -612,6 +673,7 @@ function openNotesPanel() {
   localStorage.setItem('hc_seen_notes', total);
   notesBadge.style.display = 'none';
   renderNotes();
+  setTimeout(scrollNotesToBottom, 50);
 }
 
 function closeNotesPanel() {
@@ -624,8 +686,14 @@ function renderNotes() {
   if (list.length === 0) {
     notesList.innerHTML = '<p class="notes-empty">Aucune note pour l\'instant.</p>';
     return;
+    setTimeout(scrollNotesToBottom, 50);
   }
-  list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+function scrollNotesToBottom() {
+  notesList.scrollTop = notesList.scrollHeight;
+}
+
+  list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   notesList.innerHTML = list.map(n => {
     const dateStr = new Date(n.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     const avatarHtml = n.avatarIsImage
