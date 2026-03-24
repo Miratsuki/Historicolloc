@@ -312,11 +312,11 @@ header {
   .form-row { flex-direction: column; gap: 0.8rem; }
   .editor { min-height: 120px; }
 
-  /* Bouton notes : bas à gauche */
+  /* Bouton notes : bas à droite */
   .notes-toggle {
     bottom: 1.2rem;
-    left: 1.2rem;
-    right: auto;
+    right: 1.2rem;
+    left: auto;
   }
 
   /* Panneau notes : bas de page, hauteur partielle */
