@@ -257,10 +257,92 @@ header {
 .loading-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ===== RESPONSIVE MOBILE ===== */
 @media (max-width: 640px) {
-  .form-row { flex-direction: column; }
-  .header-inner { gap: 1rem; }
-  .logo h1 { font-size: 1.4rem; }
-  .modal { margin: 0.5rem; }
-  .filters-bar { flex-direction: column; align-items: stretch; }
+
+  /* Header compact */
+  .header-inner {
+    padding: 0.7rem 0;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .logo h1 { font-size: 1.2rem; }
+  .tagline { display: none; }
+  .logo-icon { font-size: 1.6rem; }
+  #btnNewCard { font-size: 0.8rem; padding: 0.5rem 0.9rem; }
+  #btnProfile { font-size: 0.8rem; padding: 0.3rem 0.7rem 0.3rem 0.3rem; }
+
+  /* Barre de filtres */
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0.8rem auto;
+    padding: 0 1rem;
+    gap: 0.6rem;
+  }
+
+  /* Cartes en colonne unique, défilables */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+    gap: 1rem;
+    margin-bottom: 6rem; /* espace pour le bouton flottant */
+  }
+
+  /* Modals plein écran */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    border-top: 4px solid var(--ink);
+    max-height: 92vh;
+    overflow-y: auto;
+    margin: 0;
+  }
+  .modal-read { max-width: 100%; }
+  .modal-body { padding: 1rem; }
+  .modal-header { padding: 1rem 1rem 0.7rem; }
+  .modal-footer { padding: 0.8rem 1rem; }
+
+  /* Formulaire */
+  .form-row { flex-direction: column; gap: 0.8rem; }
+  .editor { min-height: 120px; }
+
+  /* Bouton notes : bas à gauche */
+  .notes-toggle {
+    bottom: 1.2rem;
+    left: 1.2rem;
+    right: auto;
+  }
+
+  /* Panneau notes : bas de page, hauteur partielle */
+  .notes-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100%;
+    height: 75vh;
+    border-left: none;
+    border-top: 4px solid var(--ink);
+    border-radius: 12px 12px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .notes-panel.open { transform: translateY(0); }
+
+  /* Masquer les boutons resize sur mobile (inutiles) */
+  .notes-resize-bar,
+  .notes-size-btns { display: none; }
+
+  /* Profil modal aussi plein écran */
+  .modal[style*="max-width:440px"],
+  .modal[style*="max-width: 440px"] {
+    max-width: 100%;
+  }
 }
