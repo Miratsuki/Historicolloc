@@ -681,18 +681,16 @@ function closeNotesPanel() {
   notesOverlay.classList.remove('open');
 }
 
+function scrollNotesToBottom() {
+  notesList.scrollTop = notesList.scrollHeight;
+}
+
 function renderNotes() {
   const list = Object.entries(notes).map(([id, n]) => ({ id, ...n }));
   if (list.length === 0) {
     notesList.innerHTML = '<p class="notes-empty">Aucune note pour l\'instant.</p>';
     return;
-    setTimeout(scrollNotesToBottom, 50);
   }
-
-function scrollNotesToBottom() {
-  notesList.scrollTop = notesList.scrollHeight;
-}
-
   list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   notesList.innerHTML = list.map(n => {
     const dateStr = new Date(n.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -718,6 +716,7 @@ function scrollNotesToBottom() {
       await remove(ref(db, `notes/${btn.dataset.id}`));
     });
   });
+  setTimeout(scrollNotesToBottom, 50);
 }
 
 async function saveNote() {
@@ -819,7 +818,6 @@ newEventLabel.addEventListener('keydown', e => { if (e.key === 'Enter') addTimel
 tagsFilter.querySelectorAll('.tag-pill').forEach(p => p.addEventListener('click', () => setActiveTag(p.dataset.tag)));
 searchInput.addEventListener('input', renderAll);
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeReadModal(); } });
 
 // ===========================
 //   UTILS
