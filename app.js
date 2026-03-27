@@ -24,6 +24,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+const ADMIN_UIDS = [
+  7tNIcDRiSpNofOvFbdz2Kohzrkt2,
+];
+
+function isAdmin() {
+  return currentUser && ADMIN_UIDS.includes(currentUser.uid);
+}
+
 // ===========================
 //   STATE
 // ===========================
@@ -186,10 +194,21 @@ function openConnectedModal() {
     profileBigAvatar.textContent = currentUser.avatar;
   }
   profileConnectedName.textContent = currentUser.name;
-  profileModalFooter.innerHTML = `
-    <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
-    <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
-    <button class="btn-primary" id="btnCloseProfile">Fermer</button>
+profileModalFooter.innerHTML = `
+  <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
+  ${isAdmin() ? `<button class="btn-secondary" id="btnAdminPanel">👑 Admin</button>` : ''}
+  <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
+  <button class="btn-primary" id="btnCloseProfile">Fermer</button>
+`;
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await signOut(auth);
+  closeProfileModal();
+});
+document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
+document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
+if (isAdmin()) {
+  document.getElementById('btnAdminPanel').addEventListener('click', openAdminPanel);
+}
   `;
   document.getElementById('btnLogout').addEventListener('click', async () => {
     await signOut(auth);
@@ -254,6 +273,92 @@ async function saveProfileChanges() {
   } catch (e) {
     showHint(registerHint, 'Erreur lors de la sauvegarde.');
   }
+}
+
+// ===========================
+//   PANEL ADMIN
+// ===========================
+async function openAdminPanel() {
+  profileModalOverlay.classList.remove('open');
+
+  // Récupère tous les utilisateurs depuis la DB
+  const snap = await get(ref(db, 'users'));
+  const users = snap.val() || {};
+
+  // Crée un modal admin dynamique
+  const adminOverlay = document.createElement('div');
+  adminOverlay.className = 'modal-overlay open';
+  adminOverlay.style.zIndex = '300';
+  adminOverlay.innerHTML = `
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h2>👑 Panel Admin</h2>
+        <button class="modal-close" id="adminClose">✕</button>
+      </div>
+      <div class="modal-body" style="gap:0.8rem">
+        <p style="font-size:0.85rem;color:var(--ink-muted);font-style:italic">
+          Clique sur un utilisateur pour modifier son profil ou supprimer ses fiches.
+        </p>
+        <div id="adminUserList" style="display:flex;flex-direction:column;gap:0.6rem">
+          ${Object.entries(users).map(([uid, u]) => `
+            <div class="timeline-event-item" style="justify-content:space-between">
+              <span style="display:flex;align-items:center;gap:0.6rem">
+                <span style="font-size:1.2rem">${u.avatarIsImage ? '🖼' : (u.avatar || '?')}</span>
+                <span><b>${escHtml(u.name)}</b> ${ADMIN_UIDS.includes(uid) ? '<span style="color:var(--gold);font-size:0.75rem">Admin</span>' : ''}</span>
+              </span>
+              <span style="display:flex;gap:0.4rem">
+                <button class="btn-secondary" style="font-size:0.75rem;padding:0.3rem 0.7rem" 
+                  data-uid="${uid}" data-name="${escHtml(u.name)}" id="editUser_${uid}">✏ Modifier</button>
+                <button class="btn-ghost" style="font-size:0.75rem;color:var(--red-accent)" 
+                  data-uid="${uid}" id="deleteCards_${uid}">🗑 Fiches</button>
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="adminClose2">Fermer</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(adminOverlay);
+
+  const closeAdmin = () => document.body.removeChild(adminOverlay);
+  document.getElementById('adminClose').addEventListener('click', closeAdmin);
+  document.getElementById('adminClose2').addEventListener('click', closeAdmin);
+  adminOverlay.addEventListener('click', e => { if (e.target === adminOverlay) closeAdmin(); });
+
+  // Boutons modifier profil
+  Object.keys(users).forEach(uid => {
+    document.getElementById(`editUser_${uid}`)?.addEventListener('click', async () => {
+      const newName = prompt(`Nouveau nom pour ${users[uid].name} :`, users[uid].name);
+      if (!newName || !newName.trim()) return;
+      await update(ref(db, `users/${uid}`), { name: newName.trim() });
+      // Met à jour les fiches de cet utilisateur
+      const cardsSnap = await get(ref(db, 'cards'));
+      const allCards = cardsSnap.val() || {};
+      const updates = {};
+      Object.entries(allCards).forEach(([cardId, card]) => {
+        if (card.authorUid === uid) updates[`cards/${cardId}/author`] = newName.trim();
+      });
+      if (Object.keys(updates).length) await update(ref(db), updates);
+      alert(`Nom mis à jour : ${newName.trim()}`);
+      closeAdmin();
+    });
+
+    document.getElementById(`deleteCards_${uid}`)?.addEventListener('click', async () => {
+      if (!confirm(`Supprimer TOUTES les fiches de ${users[uid].name} ?`)) return;
+      const cardsSnap = await get(ref(db, 'cards'));
+      const allCards = cardsSnap.val() || {};
+      const deletions = Object.entries(allCards)
+        .filter(([, card]) => card.authorUid === uid)
+        .map(([cardId]) => remove(ref(db, `cards/${cardId}`)));
+      await Promise.all(deletions);
+      alert(`Fiches de ${users[uid].name} supprimées.`);
+      closeAdmin();
+    });
+  });
 }
 
 function closeProfileModal() {
@@ -611,9 +716,9 @@ function openReadModal(id) {
   readModalBody.innerHTML = html || '<p style="color:var(--ink-muted);font-style:italic">Aucun contenu.</p>';
 
   // Affiche boutons modifier/supprimer seulement si c'est l'auteur
-  const isAuthor = currentUser && card.authorUid === currentUser.uid;
-  btnDeleteCard.style.display = isAuthor ? '' : 'none';
-  btnEditCard.style.display = isAuthor ? '' : 'none';
+  const canEdit = currentUser && (card.authorUid === currentUser.uid || isAdmin());
+  btnDeleteCard.style.display = canEdit ? '' : 'none';
+  btnEditCard.style.display = canEdit ? '' : 'none';
 
   readModalOverlay.classList.add('open');
 }
