@@ -4,7 +4,7 @@
 // ===========================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, push, set, get, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ===========================
@@ -293,8 +293,13 @@ async function handleLogin() {
   const email = loginEmail.value.trim();
   const password = loginPassword.value.trim();
   if (!email || !password) { showHint(loginHint, 'Remplis tous les champs.'); return; }
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
+try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    if (!cred.user.emailVerified) {
+      await signOut(auth);
+      showHint(loginHint, '📧 Email non vérifié. Consulte ta boîte mail.');
+      return;
+    }
     loginHint.textContent = '';
   } catch (e) {
     showHint(loginHint, 'Email ou mot de passe incorrect.');
@@ -310,13 +315,16 @@ async function handleRegister() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
-    // Sauvegarde profil étendu en DB
     await set(ref(db, `users/${cred.user.uid}`), {
       name,
       avatar: selectedAvatar,
       avatarIsImage: selectedAvatarIsImage,
     });
-    registerHint.textContent = '';
+    await sendEmailVerification(cred.user);
+    await signOut(auth); // déconnecte immédiatement jusqu'à vérification
+    showHint(registerHint, '✅ Compte créé ! Vérifie ta boîte mail pour activer ton compte.');
+    registerHint.style.color = 'var(--blue-accent)';
+    setTimeout(() => showTab('login'), 3000); // redirige vers login après 3s
   } catch (e) {
     showHint(registerHint, e.message.includes('email-already') ? 'Cet email est déjà utilisé.' : 'Erreur : ' + e.message);
   }
