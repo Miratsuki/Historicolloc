@@ -138,6 +138,7 @@ onAuthStateChanged(auth, async (user) => {
       avatar: profile.avatar || '🦁',
       avatarIsImage: profile.avatarIsImage || false,
     };
+    await update(ref(db, `users/${user.uid}`), { lastSeen: Date.now() });
     updateHeaderProfile();
     closeProfileModal();
     listenToCards();
@@ -293,7 +294,7 @@ async function openAdminPanel() {
           Clique sur un utilisateur pour modifier son profil ou supprimer ses fiches.
         </p>
         <div id="adminUserList" style="display:flex;flex-direction:column;gap:0.6rem">
-          ${Object.entries(users).map(([uid, u]) => `
+          ${Object.entries(users).filter(([, u]) => u.lastSeen).map(([uid, u]) => `
             <div class="timeline-event-item" style="justify-content:space-between">
               <span style="display:flex;align-items:center;gap:0.6rem">
                 <span style="font-size:1.2rem">${u.avatarIsImage ? '🖼' : (u.avatar || '?')}</span>
