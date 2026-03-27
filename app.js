@@ -25,7 +25,7 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const ADMIN_UIDS = [
-  '7tNIcDRiSpNofOvFbdz2Kohzrkt2',
+  '7tNIcDRiSpNofOvFbdz2Kohzrkt2', 'adkD9MHv0rYSk42rda8YbsBnK7m1'
 ];
 
 function isAdmin() {
