@@ -186,13 +186,14 @@ function openConnectedModal() {
     <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
     <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
     <button class="btn-primary" id="btnCloseProfile">Fermer</button>
-`;
-document.getElementById('btnLogout').addEventListener('click', async () => {
-  await signOut(auth);
-  closeProfileModal();
-});
-document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
-document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
+  `;
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await signOut(auth);
+    closeProfileModal();
+  });
+  document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
+  document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
+  profileModalOverlay.classList.add('open'); // ← manquait
 }
 
 function showEditProfileScreen() {
