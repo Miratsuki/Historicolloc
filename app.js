@@ -945,3 +945,24 @@ function formatDate(dateStr) {
   const months = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   return d ? `${parseInt(d)} ${months[parseInt(m)-1]} ${y}` : `${months[parseInt(m)-1]} ${y}`;
 }
+
+
+// ===========================
+//   DARK MODE
+// ===========================
+const btnDarkMode = document.getElementById('btnDarkMode');
+const DARK_KEY = 'hc_dark_mode';
+
+function applyDarkMode(dark) {
+  document.body.classList.toggle('dark', dark);
+  btnDarkMode.textContent = dark ? '☀️' : '🌙';
+}
+
+btnDarkMode.addEventListener('click', () => {
+  const isDark = !document.body.classList.contains('dark');
+  applyDarkMode(isDark);
+  localStorage.setItem(DARK_KEY, isDark);
+});
+
+// Restaure la préférence au chargement
+applyDarkMode(localStorage.getItem(DARK_KEY) === 'true');
