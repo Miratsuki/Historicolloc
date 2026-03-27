@@ -117,7 +117,11 @@ const notesExpand    = document.getElementById('notesExpand');
 // ===========================
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // Récupère le profil étendu (avatar etc.) depuis la DB
+    // Bloque si email non vérifié
+    if (!user.emailVerified) {
+      await signOut(auth);
+      return;
+    }
     const snap = await get(ref(db, `users/${user.uid}`));
     const profile = snap.val() || {};
     currentUser = {
