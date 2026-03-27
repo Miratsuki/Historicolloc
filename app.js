@@ -25,7 +25,7 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const ADMIN_UIDS = [
-  7tNIcDRiSpNofOvFbdz2Kohzrkt2,
+  '7tNIcDRiSpNofOvFbdz2Kohzrkt2',
 ];
 
 function isAdmin() {
@@ -194,21 +194,11 @@ function openConnectedModal() {
     profileBigAvatar.textContent = currentUser.avatar;
   }
   profileConnectedName.textContent = currentUser.name;
-profileModalFooter.innerHTML = `
-  <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
-  ${isAdmin() ? `<button class="btn-secondary" id="btnAdminPanel">👑 Admin</button>` : ''}
-  <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
-  <button class="btn-primary" id="btnCloseProfile">Fermer</button>
-`;
-document.getElementById('btnLogout').addEventListener('click', async () => {
-  await signOut(auth);
-  closeProfileModal();
-});
-document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
-document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
-if (isAdmin()) {
-  document.getElementById('btnAdminPanel').addEventListener('click', openAdminPanel);
-}
+  profileModalFooter.innerHTML = `
+    <button class="btn-ghost" id="btnLogout" style="color:var(--red-accent)">Se déconnecter</button>
+    ${isAdmin() ? `<button class="btn-secondary" id="btnAdminPanel">👑 Admin</button>` : ''}
+    <button class="btn-secondary" id="btnEditProfile">✏ Modifier</button>
+    <button class="btn-primary" id="btnCloseProfile">Fermer</button>
   `;
   document.getElementById('btnLogout').addEventListener('click', async () => {
     await signOut(auth);
@@ -216,7 +206,10 @@ if (isAdmin()) {
   });
   document.getElementById('btnCloseProfile').addEventListener('click', closeProfileModal);
   document.getElementById('btnEditProfile').addEventListener('click', showEditProfileScreen);
-  profileModalOverlay.classList.add('open'); // ← manquait
+  if (isAdmin()) {
+    document.getElementById('btnAdminPanel').addEventListener('click', openAdminPanel);
+  }
+  profileModalOverlay.classList.add('open');
 }
 
 function showEditProfileScreen() {
