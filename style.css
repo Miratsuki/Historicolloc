@@ -346,3 +346,66 @@ header {
     max-width: 100%;
   }
 }
+
+/* ===== DARK MODE ===== */
+.btn-dark-mode {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--paper);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-dark-mode:hover { background: rgba(255,255,255,0.18); }
+
+body.dark {
+  --paper: #1a1612;
+  --paper-dark: #231f1a;
+  --paper-line: #3a3228;
+  --ink: #e8dfc8;
+  --ink-light: #c4b49a;
+  --ink-muted: #8a7a62;
+  --red-accent: #c0392b;
+  --blue-accent: #5b8dd9;
+  --gold: #d4a017;
+  --shadow: rgba(0,0,0,0.4);
+  background-color: #0f0d0a;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 31px,
+    rgba(200,150,12,0.04) 31px,
+    rgba(200,150,12,0.04) 32px
+  );
+}
+
+body.dark header {
+  background: #0f0d0a;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+body.dark .modal {
+  background: var(--paper);
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 31px,
+    rgba(58,50,40,0.5) 31px,
+    rgba(58,50,40,0.5) 32px
+  );
+}
+
+body.dark .notes-panel {
+  background: var(--paper);
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 31px,
+    rgba(58,50,40,0.5) 31px,
+    rgba(58,50,40,0.5) 32px
+  );
+}
+
+body.dark .card {
+  box-shadow: 3px 3px 0 var(--paper-line), 6px 6px 0 rgba(0,0,0,0.3);
+}
+body.dark .card:hover {
+  box-shadow: 5px 8px 0 var(--paper-line), 10px 14px 0 rgba(0,0,0,0.4);
+}
