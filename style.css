@@ -48,8 +48,8 @@ header {
 }
 .logo { display: flex; align-items: center; gap: 1rem; }
 .logo-icon { font-size: 2.2rem; filter: drop-shadow(0 0 8px rgba(200,150,12,0.5)); }
-.logo h1 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--paper); line-height: 1; }
-.tagline { font-size: 0.75rem; color: var(--paper-line); font-style: italic; margin-top: 2px; }
+.logo h1 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--header-text, var(--paper)); line-height: 1; }
+.tagline { font-size: 0.75rem; color: var(--header-text-muted, var(--paper-line)); font-style: italic; margin-top: 2px; }
 
 /* BUTTONS */
 .btn-primary { background: var(--red-accent); color: var(--paper); border: none; padding: 0.6rem 1.4rem; font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; border-radius: var(--radius); cursor: pointer; transition: background 0.2s, transform 0.1s; }
@@ -374,6 +374,8 @@ body.dark {
   --blue-accent: #5b8dd9;
   --gold: #d4a017;
   --shadow: rgba(0,0,0,0.4);
+  --header-text: #e8dfc8;        /* ← ajouté */
+  --header-text-muted: #8a7a62;  /* ← ajouté */
   background-color: #0f0d0a;
   background-image: repeating-linear-gradient(
     0deg, transparent, transparent 31px,
@@ -388,6 +390,9 @@ body.dark #headerName { color: #e8dfc8 !important; }
 body.dark .logo h1 { color: #e8dfc8 !important; }
 body.dark header { color: #e8dfc8 !important; }
 body.dark .logo-icon { filter: drop-shadow(0 0 8px rgba(212,160,23,0.6)) !important; }
+body.dark header { color: #e8dfc8; }
+body.dark header * { color: #e8dfc8; }
+body.dark .tagline { color: #8a7a62 !important; }
 
 body.dark header {
   background: #0f0d0a;
