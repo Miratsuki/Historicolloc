@@ -382,11 +382,12 @@ body.dark {
   );
 }
 
-body.dark .tagline { color: var(--ink-muted); }
-body.dark .btn-profile { color: var(--ink); }
-body.dark #headerName { color: var(--ink); }
-body.dark .logo h1 { color: var(--ink); }
-body.dark .logo-icon { filter: drop-shadow(0 0 8px rgba(212,160,23,0.6)); }
+body.dark .tagline { color: #8a7a62 !important; }
+body.dark .btn-profile { color: #e8dfc8 !important; }
+body.dark #headerName { color: #e8dfc8 !important; }
+body.dark .logo h1 { color: #e8dfc8 !important; }
+body.dark header { color: #e8dfc8 !important; }
+body.dark .logo-icon { filter: drop-shadow(0 0 8px rgba(212,160,23,0.6)) !important; }
 
 body.dark header {
   background: #0f0d0a;
